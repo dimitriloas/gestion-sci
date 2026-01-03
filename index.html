@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCI MP2i - Système de Gestion Intégral</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        .page { display: none; }
+        .active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-button { @apply flex items-center gap-3 px-6 py-4 rounded-2xl font-bold text-sm transition-all duration-300 border border-transparent; color: #64748b; }
+        .nav-button.active-link { @apply bg-indigo-600 text-white shadow-xl shadow-indigo-100 border-indigo-500; }
+        .glass-card { @apply bg-white rounded-[2.5rem] border border-slate-200/60 shadow-xl shadow-slate-200/40 p-12 mb-10; }
+        .input-premium { @apply w-full bg-slate-50 border border-slate-200 p-4 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-sm font-semibold; }
+        .label-premium { @apply text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block; }
+        .badge-surface { @apply bg-slate-100 px-3 py-1 rounded-md text-[10px] font-bold text-slate-500 uppercase; }
+        .compta-label { @apply text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mr-2; }
+        .compta-select { @apply bg-transparent font-bold text-slate-800 outline-none cursor-pointer border-b border-transparent hover:border-slate-300 transition-all; }
+        .compta-input { @apply bg-transparent font-bold text-slate-800 outline-none border-b border-transparent hover:border-slate-300 w-24; }
+    </style>
+</head>
+<body>
+
+    <header class="bg-white/80 backdrop-blur-2xl border-b border-slate-200 sticky top-0 z-50 no-print">
+        <div class="container mx-auto px-10 py-6 flex flex-wrap justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg font-black text-white italic text-xl">M2</div>
+                <h1 class="text-2xl font-black tracking-tighter italic">SCI <span class="text-indigo-600">MP2i</span></h1>
+            </div>
+            <nav class="flex items-center bg-slate-100/80 p-2 rounded-[2.2rem] gap-2 border border-slate-200">
+                <button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-button active-link">📊 Synthèse</button>
+                <button onclick="showPage('biens')" id="btn-biens" class="nav-button">🏢 Patrimoine</button>
+                <button onclick="showPage('finances')" id="btn-finances" class="nav-button">💰 Comptabilité</button>
+                <button onclick="showPage('simulation')" id="btn-simulation" class="nav-button">📈 Simulation</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-10 py-12 max-w-7xl">
+        <section id="dashboard" class="page active">
+            <div class="mb-12"><h2 class="text-5xl font-black tracking-tighter text-slate-900">Synthèse <span class="text-indigo-600">Financière</span></h2></div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div class="glass-card !p-8 border-t-4 border-slate-800"><label class="label-premium">Valeur Patrimoine</label><p id="total-investi" class="text-3xl font-black">0 €</p></div>
+                <div class="glass-card !p-8 border-t-4 border-emerald-500"><label class="label-premium">Cash-Flow Net</label><p id="cashflow-val" class="text-3xl font-black text-emerald-600">0 €</p></div>
+                <div class="glass-card !p-8 border-t-4 border-indigo-500"><label class="label-premium">Rendement Brut</label><p id="rentabilite-val" class="text-3xl font-black">0%</p></div>
+                <div class="glass-card !p-8 border-t-4 border-rose-500"><label class="label-premium">Mensualités Totales</label><p id="total-mensualites" class="text-3xl font-black text-rose-600">0 €</p></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="glass-card"><h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-8">Revenus vs Charges</h3><canvas id="chartComparison"></canvas></div>
+                <div class="glass-card"><h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-8">Dépenses par Poste</h3><div class="max-w-[320px] mx-auto"><canvas id="chartExpenses"></canvas></div></div>
+            </div>
+        </section>
+
+        <section id="biens" class="page">
+            <div class="mb-12"><h2 class="text-5xl font-black tracking-tighter text-slate-900">Registre du <span class="text-indigo-600">Patrimoine</span></h2></div>
+            <form id="form-bien">
+                <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl mb-10">
+                    <h3 class="text-xl font-bold text-blue-500 mb-8">1. Identité & Composition</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div><label class="label-premium">Nom de l'actif</label><input type="text" id="nom-bien" class="input-premium" placeholder="ex: Villa les pins" required></div>
+                        <div><label class="label-premium">Adresse</label><input type="text" id="adresse" class="input-premium" placeholder="Ville, Rue..." required></div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div><label class="label-premium">Habitable (m²)</label><input type="number" id="surf-hab" class="input-premium" placeholder="0"></div>
+                        <div><label class="label-premium">Jardin (m²)</label><input type="number" id="surf-jar" class="input-premium" placeholder="0"></div>
+                        <div><label class="label-premium">Terrasse (m²)</label><input type="number" id="surf-ter" class="input-premium" placeholder="0"></div>
+                        <div><label class="label-premium">Garage/Pkg</label><input type="number" id="surf-gar" class="input-premium" placeholder="Nombre"></div>
+                    </div>
+                </div>
+                <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl mb-10">
+                    <h3 class="text-xl font-bold text-emerald-500 mb-8">2. Coûts d'acquisition</h3>
+                    <div class="flex flex-col lg:flex-row gap-12 items-center">
+                        <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+                            <div><label class="label-premium">Achat Net (€)</label><input type="number" id="prix-net" class="input-premium" oninput="updateAcquisitionChart()" placeholder="0"></div>
+                            <div><label class="label-premium">Notaire (€)</label><input type="number" id="prix-frais" class="input-premium" oninput="updateAcquisitionChart()" placeholder="0"></div>
+                            <div><label class="label-premium">Frais Agence (€)</label><input type="number" id="prix-agence" class="input-premium" oninput="updateAcquisitionChart()" placeholder="0"></div>
+                            <div><label class="label-premium">Travaux (€)</label><input type="number" id="prix-travaux" class="input-premium" oninput="updateAcquisitionChart()" placeholder="0"></div>
+                        </div>
+                        <div class="lg:w-80 bg-slate-50 rounded-3xl p-8 border border-slate-100 flex flex-col items-center justify-center">
+                            <div class="w-36 h-36 mb-4"><canvas id="chartAcquisition"></canvas></div>
+                            <div class="text-center">
+                                <span class="label-premium !mb-0">Coût Total</span>
+                                <span class="text-3xl font-black text-indigo-600"><span id="prix-total-display">0</span> €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl mb-10">
+                    <h3 class="text-xl font-bold text-indigo-600 mb-8">3. Ingénierie Financière</h3>
+                    <div class="flex justify-between items-center mb-10">
+                        <p class="text-sm text-slate-500 font-semibold italic">Détails des financements bancaires.</p>
+                        <button type="button" onclick="ajouterLignePret()" class="text-[10px] font-black bg-indigo-50 text-indigo-600 px-6 py-3 rounded-xl uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm">+ Ajouter une ligne de prêt</button>
+                    </div>
+                    <div id="prets-container" class="space-y-6"></div>
+                </div>
+                <div class="text-center pb-16">
+                    <button type="submit" class="bg-indigo-600 text-white px-24 py-6 rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-2xl hover:scale-105 transition-all">Enregistrer l'actif au patrimoine</button>
+                </div>
+            </form>
+            <div id="liste-biens" class="grid grid-cols-1 gap-8"></div>
+        </section>
+
+        <section id="finances" class="page">
+            <div class="mb-12"><h2 class="text-6xl font-black tracking-tight text-slate-900">Registre <span class="text-indigo-600">Comptable</span></h2></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+                <div class="lg:col-span-1 glass-card !p-8 !mb-0">
+                    <h3 class="text-sm font-black uppercase tracking-widest text-indigo-600 mb-6 flex flex-col gap-2">
+                        <span>⚙️ Charges Fixes par Bien</span>
+                        <select id="select-bien-fixe" class="compta-select text-slate-400 !text-xs mt-2" onchange="loadChargesFixesBien()"></select>
+                    </h3>
+                    <div id="fixe-inputs-container" class="space-y-4 opacity-50 pointer-events-none">
+                        <div><label class="label-premium">Assurance PNO (€)</label><input type="number" id="fixe-pno" class="input-premium !p-3" placeholder="0.00" oninput="saveChargesFixesBien()"></div>
+                        <div><label class="label-premium">Remboursement Crédit (€)</label><input type="number" id="fixe-credit" class="input-premium !p-3" placeholder="0.00" oninput="saveChargesFixesBien()"></div>
+                        <div><label class="label-premium">Assurance Crédit (€)</label><input type="number" id="fixe-ass-credit" class="input-premium !p-3" placeholder="0.00" oninput="saveChargesFixesBien()"></div>
+                        <div><label class="label-premium">Taxe Foncière (mensuelle) (€)</label><input type="number" id="fixe-taxe" class="input-premium !p-3" placeholder="0.00" oninput="saveChargesFixesBien()"></div>
+                    </div>
+                    <p id="fixe-msg" class="text-[10px] text-slate-400 mt-4 italic text-center">Sélectionnez un bien pour éditer ses charges.</p>
+                </div>
+                <div class="lg:col-span-2 glass-card !p-10 !mb-0 flex flex-col justify-center">
+                    <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-8">Saisie d'un mouvement ponctuel</h3>
+                    <form id="form-finance" class="flex flex-wrap items-center gap-x-12 gap-y-10">
+                        <div class="flex items-center"><span class="compta-label">Actif</span><select id="select-bien" class="compta-select"></select></div>
+                        <div class="flex items-center"><span class="compta-label">Nature</span><select id="type-flux" class="compta-select" onchange="updatePostesList()"></select></div>
+                        <div class="flex items-center"><span class="compta-label">Poste</span><select id="categorie-flux" class="compta-select"></select></div>
+                        <div class="flex items-center"><span class="compta-label">Montant</span><input type="number" id="montant-flux" class="compta-input" placeholder="0.00" step="0.01" required><span class="font-black text-slate-400 ml-1">€</span></div>
+                        <div class="ml-auto"><button type="submit" class="text-[11px] font-black uppercase border-b-2 border-slate-900 pb-1 italic hover:text-indigo-600 transition-all">Valider</button></div>
+                    </form>
+                </div>
+            </div>
+            <div class="bg-[#0f172a] rounded-[2rem] overflow-hidden shadow-2xl">
+                <table class="w-full text-left">
+                    <thead><tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800/50"><th class="px-10 py-7">Date</th><th class="px-10 py-7">Actif</th><th class="px-10 py-7">Poste</th><th class="px-10 py-7 text-right">Mouvement</th><th class="px-10 py-7 text-center">Action</th></tr></thead>
+                    <tbody id="table-flux" class="text-white divide-y divide-slate-800/30"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="simulation" class="page">
+            <div class="mb-12"><h2 class="text-5xl font-black tracking-tighter text-slate-900">Simulateur d'<span class="text-indigo-600">Emprunt</span></h2></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl">
+                        <h3 class="text-xl font-bold text-blue-500 mb-8">Vos Revenus Mensuels</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div><label class="label-premium">Salaires Nets (€)</label><input type="number" id="sim-revenus" class="input-premium" value="3000" oninput="calculerSimulation()"></div>
+                            <div><label class="label-premium">Loyers Encaissés (€)</label><input type="number" id="sim-loyers-recus" class="input-premium" value="0" oninput="calculerSimulation()"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl">
+                        <h3 class="text-xl font-bold text-rose-500 mb-8">Vos Charges Mensuelles</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div><label class="label-premium">Loyer Actuel (€)</label><input type="number" id="sim-loyers-payes" class="input-premium" value="0" oninput="calculerSimulation()"></div>
+                            <div><label class="label-premium">Mensualités Crédits Immo (€)</label><input type="number" id="sim-credits-immo" class="input-premium" value="0" oninput="calculerSimulation()"></div>
+                            <div><label class="label-premium">Crédits Conso / Autres (€)</label><input type="number" id="sim-credits-conso" class="input-premium" value="0" oninput="calculerSimulation()"></div>
+                            <div><label class="label-premium">Taxes Foncières (mensualisé) (€)</label><input type="number" id="sim-taxe-fonciere" class="input-premium" value="0" oninput="calculerSimulation()"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl">
+                        <h3 class="text-xl font-bold text-indigo-600 mb-8">Paramètres de l'Emprunt</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                            <div><label class="label-premium">Durée (années)</label><input type="number" id="sim-duree" class="input-premium" value="20" oninput="calculerSimulation()"></div>
+                            <div><label class="label-premium">Taux d'intérêt (%)</label><input type="number" id="sim-taux" class="input-premium" step="0.1" value="3.5" oninput="calculerSimulation()"></div>
+                            <div><label class="label-premium">Endettement Max (%)</label><input type="number" id="sim-endettement" class="input-premium" value="35" oninput="calculerSimulation()"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                            <div><label class="label-premium">Apport Personnel (€)</label><input type="number" id="sim-apport" class="input-premium" value="0" placeholder="Ex: 20000" oninput="calculerSimulation()"></div>
+                            <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                <input type="checkbox" id="sim-inclure-frais" class="w-5 h-5 accent-indigo-600 cursor-pointer" onchange="calculerSimulation()">
+                                <label for="sim-inclure-frais" class="text-xs font-bold text-slate-600 cursor-pointer">Inclure Frais Agence/Notaire (110%)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="bg-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-indigo-200 sticky top-32">
+                        <label class="text-[10px] font-black uppercase tracking-[0.2em] opacity-70">Capacité d'achat (Projet)</label>
+                        <div class="text-5xl font-black my-4" id="res-capital">0 €</div>
+                        <div class="h-px bg-white/20 my-6"></div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-80">Nouvelle Mensualité Max</span><span class="text-xl font-black" id="res-mensualite">0 €</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-80">Ratio Final</span><span class="text-xl font-black" id="res-ratio">0 %</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-80">Reste à vivre</span><span class="text-xl font-black" id="res-reste">0 €</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- CONFIGURATION FIREBASE (À REMPLACER PAR TES INFOS) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjYj_NYs4TRswmNS_j7leUEOJBsVhL-a0",
+            authDomain: "sci-gestion-e65a4.firebaseapp.com",
+            projectId: "sci-gestion-e65a4",
+            storageBucket: "sci-gestion-e65a4.firebasestorage.app",
+            messagingSenderId: "1077000449500",
+            appId: "1:1077000449500:web:7e95974e568d1e9b4e3319"
+          };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- ÉTAT GLOBAL ---
+        window.state = {
+            biens: [],
+            flux: [],
+            natures: ["Recette", "Charge"],
+            postes: {
+                "Recette": ["Loyer Principal", "Charges Locatives"],
+                "Charge": ["Travaux", "Taxe Foncière", "Assurance PNO", "Copropriété", "Banque", "Assurance Crédit", "Remboursement Crédit"]
+            }
+        };
+
+        // --- SYNCHRONISATION TEMPS RÉEL ---
+        onSnapshot(doc(db, "sci", "data"), (docSnap) => {
+            if (docSnap.exists()) {
+                window.state = { ...window.state, ...docSnap.data() };
+                refreshUI();
+            }
+        });
+
+        async function saveToFirebase() {
+            await setDoc(doc(db, "sci", "data"), window.state);
+        }
+
+        function refreshUI() {
+            const pageId = document.querySelector('.page.active').id;
+            if(pageId === 'dashboard') updateDashboard();
+            if(pageId === 'biens') { renderBiens(); updateAcquisitionChart(); }
+            if(pageId === 'finances') { updateSelectsCompta(); renderFluxTable(); }
+        }
+
+        // --- FONCTIONS NAVIGATION ---
+        window.showPage = (id) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active-link'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active-link');
+            refreshUI();
+            if(id === 'simulation') calculerSimulation();
+        };
+
+        // --- LOGIQUE METIER ---
+        window.loadChargesFixesBien = () => {
+            const selectedName = document.getElementById('select-bien-fixe').value;
+            const container = document.getElementById('fixe-inputs-container');
+            const msg = document.getElementById('fixe-msg');
+            if(!selectedName) { container.classList.add('opacity-50', 'pointer-events-none'); msg.classList.remove('hidden'); return; }
+            container.classList.remove('opacity-50', 'pointer-events-none');
+            msg.classList.add('hidden');
+            const bien = window.state.biens.find(b => b.nom === selectedName);
+            if(bien) {
+                if(!bien.chargesFixes) bien.chargesFixes = { pno: 0, credit: 0, assCredit: 0, taxe: 0 };
+                document.getElementById('fixe-pno').value = bien.chargesFixes.pno || 0;
+                document.getElementById('fixe-credit').value = bien.chargesFixes.credit || 0;
+                document.getElementById('fixe-ass-credit').value = bien.chargesFixes.assCredit || 0;
+                document.getElementById('fixe-taxe').value = bien.chargesFixes.taxe || 0;
+            }
+        };
+
+        window.saveChargesFixesBien = () => {
+            const selectedName = document.getElementById('select-bien-fixe').value;
+            const bien = window.state.biens.find(b => b.nom === selectedName);
+            if(bien) {
+                bien.chargesFixes = {
+                    pno: Number(document.getElementById('fixe-pno').value) || 0,
+                    credit: Number(document.getElementById('fixe-credit').value) || 0,
+                    assCredit: Number(document.getElementById('fixe-ass-credit').value) || 0,
+                    taxe: Number(document.getElementById('fixe-taxe').value) || 0
+                };
+                saveToFirebase();
+            }
+        };
+
+        window.updateAcquisitionChart = () => {
+            const net = Number(document.getElementById('prix-net').value) || 0;
+            const not = Number(document.getElementById('prix-frais').value) || 0;
+            const agc = Number(document.getElementById('prix-agence').value) || 0;
+            const trv = Number(document.getElementById('prix-travaux').value) || 0;
+            const total = net + not + agc + trv;
+            document.getElementById('prix-total-display').innerText = total.toLocaleString();
+            const ctx = document.getElementById('chartAcquisition').getContext('2d');
+            if(window.chartAcq) window.chartAcq.destroy();
+            window.chartAcq = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Achat', 'Notaire', 'Agence', 'Travaux'],
+                    datasets: [{ data: [net, not, agc, trv], backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }]
+                },
+                options: { cutout: '75%', plugins: { legend: { display: false } } }
+            });
+        };
+
+        window.calculerSimulation = () => {
+            const rev = (Number(document.getElementById('sim-revenus').value) || 0) + (Number(document.getElementById('sim-loyers-recus').value) || 0);
+            const chargesActuelles = (Number(document.getElementById('sim-loyers-payes').value) || 0) + (Number(document.getElementById('sim-credits-immo').value) || 0) + (Number(document.getElementById('sim-credits-conso').value) || 0) + (Number(document.getElementById('sim-taxe-fonciere').value) || 0);
+            const endettementMax = Number(document.getElementById('sim-endettement').value) / 100;
+            const taux = (Number(document.getElementById('sim-taux').value) || 0) / 100;
+            const annees = Number(document.getElementById('sim-duree').value) || 0;
+            const apport = Number(document.getElementById('sim-apport').value) || 0;
+            const mens = Math.max(0, (rev * endettementMax) - chargesActuelles);
+            let pretPossible = 0;
+            if (mens > 0 && taux > 0) {
+                const r = taux / 12, n = annees * 12;
+                pretPossible = mens * (1 - Math.pow(1 + r, -n)) / r;
+            } else if (mens > 0) pretPossible = mens * (annees * 12);
+            document.getElementById('res-capital').innerText = Math.round(pretPossible + apport).toLocaleString() + " €";
+            document.getElementById('res-mensualite').innerText = Math.round(mens).toLocaleString() + " €";
+            document.getElementById('res-reste').innerText = Math.round(rev - chargesActuelles - mens).toLocaleString() + " €";
+            document.getElementById('res-ratio').innerText = rev > 0 ? Math.round(((chargesActuelles + mens) / rev) * 100) + " %" : "0 %";
+        };
+
+        window.updatePostesList = () => {
+            const nature = document.getElementById('type-flux').value;
+            const select = document.getElementById('categorie-flux');
+            select.innerHTML = (window.state.postes[nature] || []).map(p => `<option value="${p}">${p}</option>`).join('');
+        };
+
+        window.updateSelectsCompta = () => {
+            const options = window.state.biens.map(b => `<option value="${b.nom}">${b.nom}</option>`).join('');
+            document.getElementById('select-bien').innerHTML = options;
+            document.getElementById('select-bien-fixe').innerHTML = `<option value="">Choisir un bien...</option>` + options;
+            document.getElementById('type-flux').innerHTML = window.state.natures.map(n => `<option value="${n}">${n}</option>`).join('');
+            window.updatePostesList();
+        };
+
+        window.ajouterLignePret = () => {
+            const div = document.createElement('div');
+            div.className = "flex gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 items-center animate-fadeIn";
+            div.innerHTML = `<select class="compta-select text-xs w-36"><option>Immo</option></select><input type="number" class="compta-input flex-1" placeholder="Capital"><input type="number" step="0.01" class="compta-input w-20" placeholder="%"><button type="button" onclick="this.parentElement.remove()" class="text-rose-500">✕</button>`;
+            document.getElementById('prets-container').appendChild(div);
+        };
+
+        document.getElementById('form-bien').onsubmit = (e) => {
+            e.preventDefault();
+            const total = (Number(document.getElementById('prix-net').value)||0) + (Number(document.getElementById('prix-frais').value)||0) + (Number(document.getElementById('prix-agence').value)||0) + (Number(document.getElementById('prix-travaux').value)||0);
+            window.state.biens.push({ id: Date.now(), nom: document.getElementById('nom-bien').value, coutTotal: total, surfaces: { hab: document.getElementById('surf-hab').value }, chargesFixes: { pno: 0, credit: 0, assCredit: 0, taxe: 0 } });
+            saveToFirebase();
+            e.target.reset();
+        };
+
+        window.renderBiens = () => {
+            document.getElementById('liste-biens').innerHTML = window.state.biens.map(b => `<div class="glass-card flex justify-between items-center py-8"><div><h4 class="text-2xl font-black">${b.nom}</h4><span class="badge-surface">${b.surfaces.hab} m²</span></div><div class="text-right"><p class="label-premium">Total</p><p class="text-xl font-bold">${b.coutTotal.toLocaleString()} €</p></div><button onclick="window.deleteBien(${b.id})" class="text-rose-500">✕</button></div>`).join('');
+        };
+
+        document.getElementById('form-finance').onsubmit = (e) => {
+            e.preventDefault();
+            window.state.flux.push({ id: Date.now(), date: new Date().toISOString(), bien: document.getElementById('select-bien').value, nature: document.getElementById('type-flux').value, poste: document.getElementById('categorie-flux').value, montant: Number(document.getElementById('montant-flux').value) });
+            saveToFirebase();
+            e.target.reset();
+        };
+
+        window.renderFluxTable = () => {
+            const tbody = document.getElementById('table-flux');
+            let html = "";
+            const dateStr = new Date().toLocaleDateString();
+            window.state.biens.forEach(bien => {
+                if(bien.chargesFixes) {
+                    const fixes = [{ label: "Assurance PNO", val: bien.chargesFixes.pno }, { label: "Remboursement Crédit", val: bien.chargesFixes.credit }, { label: "Assurance Crédit", val: bien.chargesFixes.assCredit }, { label: "Taxe Foncière", val: bien.chargesFixes.taxe }];
+                    fixes.forEach(f => {
+                        if(f.val > 0) html += `<tr class="bg-indigo-50/10 italic"><td class="px-10 py-7 text-[11px] opacity-60">${dateStr}</td><td class="px-10 py-7 font-bold opacity-60">${bien.nom}</td><td class="px-10 py-7 uppercase text-[10px] flex items-center gap-2">📌 ${f.label}</td><td class="px-10 py-7 text-right font-black text-rose-400">${f.val.toFixed(2)} €</td><td class="px-10 py-7 text-center text-[9px] font-black uppercase text-indigo-400">Automatique</td></tr>`;
+                    });
+                }
+            });
+            const fluxHtml = window.state.flux.map(f => `<tr><td class="px-10 py-7 text-[11px]">${new Date(f.date).toLocaleDateString()}</td><td class="px-10 py-7 font-bold">${f.bien}</td><td class="px-10 py-7 uppercase text-[10px]">${f.poste}</td><td class="px-10 py-7 text-right font-black ${f.nature === "Recette" ? 'text-emerald-400' : 'text-rose-500'}">${f.montant.toFixed(2)} €</td><td class="px-10 py-7 text-center"><button onclick="window.deleteFlux(${f.id})" class="hover:text-rose-500 transition-colors">✕</button></td></tr>`).join('');
+            tbody.innerHTML = html + fluxHtml;
+        };
+
+        window.deleteFlux = (id) => { window.state.flux = window.state.flux.filter(f=>f.id!==id); saveToFirebase(); };
+        window.deleteBien = (id) => { window.state.biens = window.state.biens.filter(b=>b.id!==id); saveToFirebase(); };
+
+        window.updateDashboard = () => {
+            const totalInv = window.state.biens.reduce((s,b)=>s+b.coutTotal,0);
+            document.getElementById('total-investi').innerText = totalInv.toLocaleString() + " €";
+            let totalFixes = 0, totalMensCredits = 0;
+            window.state.biens.forEach(b => {
+                if(b.chargesFixes) {
+                    totalFixes += (b.chargesFixes.pno || 0) + (b.chargesFixes.credit || 0) + (b.chargesFixes.assCredit || 0) + (b.chargesFixes.taxe || 0);
+                    totalMensCredits += (b.chargesFixes.credit || 0);
+                }
+            });
+            const rec = window.state.flux.filter(f => f.nature === "Recette").reduce((s,f) => s + f.montant, 0);
+            const chg = window.state.flux.filter(f => f.nature === "Charge").reduce((s,f) => s + f.montant, 0);
+            document.getElementById('cashflow-val').innerText = (rec - chg - totalFixes).toLocaleString() + " €";
+            document.getElementById('total-mensualites').innerText = totalMensCredits.toLocaleString() + " €";
+        };
+    </script>
+</body>
+</html>
