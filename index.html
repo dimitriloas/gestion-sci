@@ -25,16 +25,16 @@
 <body>
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100]">
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md animate-fadeIn">
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md">
             <div class="flex justify-center mb-6">
                 <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg font-black text-white italic text-2xl">M2</div>
             </div>
-            <h2 class="text-3xl font-black mb-6 text-center tracking-tighter italic text-slate-900">SCI <span class="text-indigo-600">MP2i</span></h2>
+            <h2 class="text-3xl font-black mb-6 text-center tracking-tighter italic">SCI <span class="text-indigo-600">MP2i</span></h2>
             <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="Email Administrateur" class="input-premium">
+                <input type="email" id="login-email" placeholder="Email" class="input-premium">
                 <input type="password" id="login-password" placeholder="Mot de passe" class="input-premium">
-                <button id="btn-login" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg">Accéder à la gestion</button>
-                <p id="login-error" class="text-rose-500 text-xs mt-2 text-center hidden font-bold">Identifiants incorrects.</p>
+                <button id="btn-login" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg">Connexion</button>
+                <p id="login-error" class="text-rose-500 text-xs mt-4 text-center hidden font-bold">Identifiants incorrects.</p>
             </div>
         </div>
     </div>
@@ -50,41 +50,53 @@
                     <button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-button active-link">📊 Synthèse</button>
                     <button onclick="showPage('biens')" id="btn-biens" class="nav-button">🏢 Patrimoine</button>
                     <button onclick="showPage('finances')" id="btn-finances" class="nav-button">💰 Comptabilité</button>
-                    <button id="btn-logout" class="nav-button text-rose-500 font-black">Quitter</button>
+                    <button id="btn-logout" class="nav-button text-rose-500 font-black ml-2">Quitter</button>
                 </nav>
             </div>
         </header>
 
         <main class="container mx-auto px-10 py-12 max-w-7xl">
-            <section id="biens" class="page active">
+            <section id="dashboard" class="page active">
+                <div class="mb-12"><h2 class="text-5xl font-black tracking-tighter text-slate-900">Synthèse <span class="text-indigo-600">Financière</span></h2></div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                    <div class="glass-card !p-8 border-t-4 border-slate-800"><label class="label-premium">Valeur Patrimoine</label><p id="total-investi" class="text-3xl font-black">0 €</p></div>
+                    <div class="glass-card !p-8 border-t-4 border-emerald-500"><label class="label-premium">Cash-Flow Net</label><p id="cashflow-val" class="text-3xl font-black text-emerald-600">0 €</p></div>
+                    <div class="glass-card !p-8 border-t-4 border-indigo-500"><label class="label-premium">Rendement Brut</label><p id="rentabilite-val" class="text-3xl font-black">0%</p></div>
+                    <div class="glass-card !p-8 border-t-4 border-rose-500"><label class="label-premium">Mensualités</label><p id="total-mensualites" class="text-3xl font-black text-rose-600">0 €</p></div>
+                </div>
+            </section>
+
+            <section id="biens" class="page">
                 <div class="mb-12"><h2 class="text-5xl font-black tracking-tighter text-slate-900">Registre du <span class="text-indigo-600">Patrimoine</span></h2></div>
+                
                 <form id="form-bien">
                     <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl mb-10">
                         <h3 class="text-xl font-bold text-blue-500 mb-8">1. Identité & Composition</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                            <input type="text" id="nom-bien" class="input-premium" placeholder="Nom de l'actif" required>
-                            <input type="text" id="adresse" class="input-premium" placeholder="Adresse complète">
+                            <div><label class="label-premium">Nom de l'actif</label><input type="text" id="nom-bien" class="input-premium" placeholder="ex: Appartement T3" required></div>
+                            <div><label class="label-premium">Adresse</label><input type="text" id="adresse" class="input-premium" placeholder="Ville, Rue..."></div>
                         </div>
-                        <div class="grid grid-cols-4 gap-4">
-                            <input type="number" id="surf-hab" class="input-premium" placeholder="Habitable m²">
-                            <input type="number" id="surf-jar" class="input-premium" placeholder="Jardin m²">
-                            <input type="number" id="surf-ter" class="input-premium" placeholder="Terrasse m²">
-                            <input type="number" id="surf-gar" class="input-premium" placeholder="Parkings">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div><label class="label-premium">Habitable (m²)</label><input type="number" id="surf-hab" class="input-premium" value="0"></div>
+                            <div><label class="label-premium">Jardin (m²)</label><input type="number" id="surf-jar" class="input-premium" value="0"></div>
+                            <div><label class="label-premium">Terrasse (m²)</label><input type="number" id="surf-ter" class="input-premium" value="0"></div>
+                            <div><label class="label-premium">Garage/Pkg</label><input type="number" id="surf-gar" class="input-premium" value="0"></div>
                         </div>
                     </div>
 
                     <div class="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-xl mb-10">
                         <h3 class="text-xl font-bold text-emerald-500 mb-8">2. Coûts d'acquisition</h3>
                         <div class="flex flex-col lg:flex-row gap-12 items-center">
-                            <div class="flex-1 grid grid-cols-2 gap-4">
-                                <div><label class="label-premium">Achat Net</label><input type="number" id="prix-net" class="input-premium" oninput="updateAcquisitionChart()"></div>
-                                <div><label class="label-premium">Notaire</label><input type="number" id="prix-frais" class="input-premium" oninput="updateAcquisitionChart()"></div>
-                                <div><label class="label-premium">Agence</label><input type="number" id="prix-agence" class="input-premium" oninput="updateAcquisitionChart()"></div>
-                                <div><label class="label-premium">Travaux</label><input type="number" id="prix-travaux" class="input-premium" oninput="updateAcquisitionChart()"></div>
+                            <div class="flex-1 grid grid-cols-2 gap-4 w-full">
+                                <div><label class="label-premium">Achat Net (€)</label><input type="number" id="prix-net" class="input-premium" oninput="updateAcquisitionChart()" value="0"></div>
+                                <div><label class="label-premium">Notaire (€)</label><input type="number" id="prix-frais" class="input-premium" oninput="updateAcquisitionChart()" value="0"></div>
+                                <div><label class="label-premium">Agence (€)</label><input type="number" id="prix-agence" class="input-premium" oninput="updateAcquisitionChart()" value="0"></div>
+                                <div><label class="label-premium">Travaux (€)</label><input type="number" id="prix-travaux" class="input-premium" oninput="updateAcquisitionChart()" value="0"></div>
                             </div>
-                            <div class="lg:w-64 flex flex-col items-center">
+                            <div class="lg:w-72 flex flex-col items-center">
                                 <canvas id="chartAcquisition" class="mb-4"></canvas>
-                                <p class="text-2xl font-black text-indigo-600"><span id="prix-total-display">0</span> €</p>
+                                <span class="label-premium">Total Opération</span>
+                                <span class="text-3xl font-black text-indigo-600"><span id="prix-total-display">0</span> €</span>
                             </div>
                         </div>
                     </div>
@@ -94,15 +106,22 @@
                             <h3 class="text-xl font-bold text-indigo-600">3. Ingénierie Financière</h3>
                             <button type="button" onclick="ajouterLignePret()" class="text-[10px] font-black bg-indigo-50 text-indigo-600 px-6 py-3 rounded-xl uppercase hover:bg-indigo-600 hover:text-white transition-all">+ Ajouter une ligne de prêt</button>
                         </div>
-                        <div id="prets-container" class="space-y-4">
-                            </div>
+                        <div id="prets-container" class="space-y-4"></div>
                     </div>
 
                     <div class="text-center pb-16">
-                        <button type="submit" class="bg-indigo-600 text-white px-24 py-6 rounded-[2rem] font-black uppercase shadow-2xl hover:scale-105 transition-all">Enregistrer l'actif</button>
+                        <button type="submit" class="bg-indigo-600 text-white px-24 py-6 rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-2xl hover:scale-105 transition-all">Enregistrer l'actif au patrimoine</button>
                     </div>
                 </form>
+
                 <div id="liste-biens" class="grid grid-cols-1 gap-8"></div>
+            </section>
+
+            <section id="finances" class="page">
+                <div class="mb-12"><h2 class="text-5xl font-black tracking-tighter">Gestion <span class="text-indigo-600">Comptable</span></h2></div>
+                <div class="glass-card">
+                    <p class="text-slate-500 italic">Interface de gestion des flux...</p>
+                </div>
             </section>
         </main>
     </div>
@@ -127,15 +146,25 @@
 
         window.state = { biens: [], flux: [] };
 
+        // --- NAVIGATION (RÉTABLIE) ---
+        window.showPage = (id) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active-link'));
+            
+            const p = document.getElementById(id);
+            const b = document.getElementById('btn-' + id);
+            if(p) p.classList.add('active');
+            if(b) b.classList.add('active-link');
+            
+            if(id === 'biens') setTimeout(updateAcquisitionChart, 100);
+        };
+
         // --- AUTHENTIFICATION ---
         document.getElementById('btn-login').onclick = async () => {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (e) {
-                document.getElementById('login-error').classList.remove('hidden');
-            }
+            try { await signInWithEmailAndPassword(auth, email, pass); }
+            catch (e) { document.getElementById('login-error').classList.remove('hidden'); }
         };
 
         document.getElementById('btn-logout').onclick = () => signOut(auth);
@@ -145,7 +174,7 @@
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
                 onSnapshot(doc(db, "sci", "data"), (snap) => {
-                    if (snap.exists()) { window.state = snap.data(); renderBiens(); }
+                    if (snap.exists()) { window.state = snap.data(); renderBiens(); updateDashboard(); }
                 });
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
@@ -153,7 +182,32 @@
             }
         });
 
-        // --- INGÉNIERIE FINANCIÈRE ---
+        // --- LOGIQUE PATRIMOINE ---
+        window.updateAcquisitionChart = () => {
+            const net = Number(document.getElementById('prix-net').value) || 0;
+            const not = Number(document.getElementById('prix-frais').value) || 0;
+            const agc = Number(document.getElementById('prix-agence').value) || 0;
+            const trv = Number(document.getElementById('prix-travaux').value) || 0;
+            const total = net + not + agc + trv;
+            document.getElementById('prix-total-display').innerText = total.toLocaleString();
+
+            const canvas = document.getElementById('chartAcquisition');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if(window.chartAcq) window.chartAcq.destroy();
+            window.chartAcq = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [net, not, agc, trv],
+                        backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '75%', plugins: { legend: { display: false } } }
+            });
+        };
+
         window.ajouterLignePret = () => {
             const div = document.createElement('div');
             div.className = "loan-row flex gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 items-center animate-fadeIn";
@@ -161,54 +215,48 @@
                 <select class="compta-select text-xs w-32"><option>Prêt Immo</option><option>Prêt Travaux</option></select>
                 <input type="number" class="compta-input flex-1 loan-amount" placeholder="Capital (€)">
                 <input type="number" step="0.01" class="compta-input w-20 loan-rate" placeholder="Taux %">
-                <input type="number" class="compta-input w-20 loan-duration" placeholder="Mois">
                 <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 font-bold">✕</button>`;
             document.getElementById('prets-container').appendChild(div);
         };
 
-        // --- SAUVEGARDE ET RENDU ---
         document.getElementById('form-bien').onsubmit = async (e) => {
             e.preventDefault();
-            
-            // Collecte des prêts de la partie 3
             const prets = [];
             document.querySelectorAll('.loan-row').forEach(row => {
                 prets.push({
                     type: row.querySelector('select').value,
                     montant: Number(row.querySelector('.loan-amount').value) || 0,
-                    taux: Number(row.querySelector('.loan-rate').value) || 0,
-                    duree: Number(row.querySelector('.loan-duration').value) || 0
+                    taux: Number(row.querySelector('.loan-rate').value) || 0
                 });
             });
 
-            const total = Number(document.getElementById('prix-net').value) + Number(document.getElementById('prix-frais').value) + Number(document.getElementById('prix-agence').value) + Number(document.getElementById('prix-travaux').value);
-            
-            const nouveauBien = {
+            const nouveau = {
                 id: Date.now(),
                 nom: document.getElementById('nom-bien').value,
-                coutTotal: total,
+                adresse: document.getElementById('adresse').value,
+                coutTotal: Number(document.getElementById('prix-net').value) + Number(document.getElementById('prix-frais').value) + Number(document.getElementById('prix-agence').value) + Number(document.getElementById('prix-travaux').value),
                 surfaces: { hab: document.getElementById('surf-hab').value },
-                prets: prets // Sauvegarde de la partie 3
+                prets: prets
             };
 
-            window.state.biens.push(nouveauBien);
+            window.state.biens.push(nouveau);
             await setDoc(doc(db, "sci", "data"), window.state);
             e.target.reset();
             document.getElementById('prets-container').innerHTML = '';
+            updateAcquisitionChart();
         };
 
         window.renderBiens = () => {
-            document.getElementById('liste-biens').innerHTML = window.state.biens.map(b => `
+            const container = document.getElementById('liste-biens');
+            if(!container) return;
+            container.innerHTML = (window.state.biens || []).map(b => `
                 <div class="glass-card flex justify-between items-center py-6">
                     <div>
                         <h4 class="text-2xl font-black">${b.nom}</h4>
                         <span class="badge-surface">${b.surfaces.hab} m²</span>
-                        <div class="mt-2 text-[10px] text-slate-400 font-bold uppercase">
-                            ${b.prets ? b.prets.length + ' prêt(s) associé(s)' : 'Aucun prêt'}
-                        </div>
                     </div>
                     <div class="text-right">
-                        <p class="label-premium">Investissement</p>
+                        <p class="label-premium">Investi</p>
                         <p class="text-xl font-bold text-indigo-600">${b.coutTotal.toLocaleString()} €</p>
                         <button onclick="deleteBien(${b.id})" class="text-rose-500 text-[10px] font-black uppercase mt-2">Supprimer</button>
                     </div>
@@ -220,21 +268,11 @@
             await setDoc(doc(db, "sci", "data"), window.state);
         };
 
-        window.updateAcquisitionChart = () => {
-            const net = Number(document.getElementById('prix-net').value) || 0;
-            const not = Number(document.getElementById('prix-frais').value) || 0;
-            const agc = Number(document.getElementById('prix-agence').value) || 0;
-            const trv = Number(document.getElementById('prix-travaux').value) || 0;
-            document.getElementById('prix-total-display').innerText = (net+not+agc+trv).toLocaleString();
-            
-            const ctx = document.getElementById('chartAcquisition').getContext('2d');
-            if(window.chartAcq) window.chartAcq.destroy();
-            window.chartAcq = new Chart(ctx, {
-                type: 'doughnut',
-                data: { datasets: [{ data: [net, not, agc, trv], backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
-            });
-        };
+        function updateDashboard() {
+            const total = window.state.biens.reduce((s,b) => s + b.coutTotal, 0);
+            const display = document.getElementById('total-investi');
+            if(display) display.innerText = total.toLocaleString() + " €";
+        }
     </script>
 </body>
 </html>
